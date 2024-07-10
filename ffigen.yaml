@@ -1,0 +1,19 @@
+# Run with `dart run ffigen --config ffigen.yaml`.
+name: DartEscPosDriverBindings
+description: |
+  Bindings for `src/dart_esc_pos_driver.h`.
+
+  Regenerate bindings with `dart run ffigen --config ffigen.yaml`.
+output: 'lib/dart_esc_pos_driver_bindings_generated.dart'
+headers:
+  entry-points:
+    - 'src/dart_esc_pos_driver.h'
+  include-directives:
+    - 'src/dart_esc_pos_driver.h'
+preamble: |
+  // ignore_for_file: always_specify_types
+  // ignore_for_file: camel_case_types
+  // ignore_for_file: non_constant_identifier_names
+comments:
+  style: any
+  length: full
