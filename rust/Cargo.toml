@@ -1,0 +1,11 @@
+[package]
+name = "dart_esc_pos_driver"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "staticlib"]
+
+[dependencies]
+flutter_rust_bridge = "=2.1.0"
+recibo = { version = "0.3.0", features = ["graphics"] }

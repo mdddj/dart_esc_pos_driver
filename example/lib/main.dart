@@ -1,9 +1,9 @@
+import 'package:dart_esc_pos_driver/api/printer.dart';
+import 'package:dart_esc_pos_driver/dart_esc_pos_driver.dart';
 import 'package:flutter/material.dart';
-import 'dart:async';
-
-import 'package:dart_esc_pos_driver/dart_esc_pos_driver.dart' as dart_esc_pos_driver;
 
 void main() {
+  initDartEscPosDriverLibaray();
   runApp(const MyApp());
 }
 
@@ -15,60 +15,50 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  late int sumResult;
-  late Future<int> sumAsyncResult;
-
   @override
   void initState() {
     super.initState();
-    sumResult = dart_esc_pos_driver.sum(1, 2);
-    sumAsyncResult = dart_esc_pos_driver.sumAsync(3, 4);
   }
 
   @override
   Widget build(BuildContext context) {
-    const textStyle = TextStyle(fontSize: 25);
-    const spacerSmall = SizedBox(height: 10);
     return MaterialApp(
       home: Scaffold(
         appBar: AppBar(
           title: const Text('Native Packages'),
         ),
-        body: SingleChildScrollView(
-          child: Container(
-            padding: const EdgeInsets.all(10),
-            child: Column(
-              children: [
-                const Text(
-                  'This calls a native function through FFI that is shipped as source in the package. '
-                  'The native code is built as part of the Flutter Runner build.',
-                  style: textStyle,
-                  textAlign: TextAlign.center,
-                ),
-                spacerSmall,
-                Text(
-                  'sum(1, 2) = $sumResult',
-                  style: textStyle,
-                  textAlign: TextAlign.center,
-                ),
-                spacerSmall,
-                FutureBuilder<int>(
-                  future: sumAsyncResult,
-                  builder: (BuildContext context, AsyncSnapshot<int> value) {
-                    final displayValue =
-                        (value.hasData) ? value.data : 'loading';
-                    return Text(
-                      'await sumAsync(3, 4) = $displayValue',
-                      style: textStyle,
-                      textAlign: TextAlign.center,
-                    );
-                  },
-                ),
-              ],
-            ),
-          ),
+        body: ListView(
+          children: [
+            TextButton(
+                onPressed: _getConsolePrinter, child: const Text("连接控制台打印机"))
+          ],
         ),
       ),
     );
+  }
+
+  Future<void> _getConsolePrinter() async {
+    try {
+      print('开始连接控制台打印.');
+      final consolePrinter = await LddConsoleDriver.open();
+      print(consolePrinter);
+      final printer = await consolePrinter.openPrinter();
+      print(printer);
+      await printer.init();
+      await printer.align(alignment: LddAlignment.center);
+      await printer.qr(
+        funCall: () {
+          return const DartQrBuilder(size: 200, text: "hello");
+        },
+      );
+      await printer.text(text: "hello 梁典典");
+      await printer.feed(n: 4);
+      await printer.cut();
+      await printer.flush();
+      print('结束');
+    } catch (e, s) {
+      print(e);
+      print(s);
+    }
   }
 }
