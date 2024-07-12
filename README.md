@@ -1,92 +1,74 @@
 # dart_esc_pos_driver
 
-A new Flutter FFI plugin project.
+Connect the thermal printer and print data
 
-## Getting Started
 
-This project is a starting point for a Flutter
-[FFI plugin](https://docs.flutter.dev/development/platform-integration/c-interop),
-a specialized package that includes native code directly invoked with Dart FFI.
+## example 
 
-## Project structure
+```dart
+import 'package:dart_esc_pos_driver/api/printer.dart';
+import 'package:dart_esc_pos_driver/dart_esc_pos_driver.dart';
+import 'package:flutter/material.dart';
 
-This template uses the following structure:
+void main() {
+  initDartEscPosDriverLibaray();
+  runApp(const MyApp());
+}
 
-* `src`: Contains the native source code, and a CmakeFile.txt file for building
-  that source code into a dynamic library.
+class MyApp extends StatefulWidget {
+  const MyApp({super.key});
 
-* `lib`: Contains the Dart code that defines the API of the plugin, and which
-  calls into the native code using `dart:ffi`.
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
 
-* platform folders (`android`, `ios`, `windows`, etc.): Contains the build files
-  for building and bundling the native code library with the platform application.
+class _MyAppState extends State<MyApp> {
+  @override
+  void initState() {
+    super.initState();
+  }
 
-## Building and bundling native code
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      home: Scaffold(
+        appBar: AppBar(
+          title: const Text('Native Packages'),
+        ),
+        body: ListView(
+          children: [
+            TextButton(
+                onPressed: _getConsolePrinter, child: const Text("连接控制台打印机"))
+          ],
+        ),
+      ),
+    );
+  }
 
-The `pubspec.yaml` specifies FFI plugins as follows:
+  Future<void> _getConsolePrinter() async {
+    try {
+      print('开始连接打印机.');
+      final consolePrinter = await LddNetworkDriver.open(host: "", port: 0);
+      print(consolePrinter);
+      final printer = await consolePrinter.openPrinter();
+      print(printer);
+      await printer.init();
+      await printer.align(alignment: LddAlignment.center);
+      await printer.qr(
+        funCall: () {
+          return const DartQrBuilder(size: 200, text: "hello");
+        },
+      );
+      await printer.text(text: "hello 梁典典");
+      await printer.feed(n: 4);
+      await printer.cut();
+      await printer.flush();
+      print('结束');
+    } catch (e, s) {
+      print(e);
+      print(s);
+    }
+  }
+}
 
-```yaml
-  plugin:
-    platforms:
-      some_platform:
-        ffiPlugin: true
 ```
-
-This configuration invokes the native build for the various target platforms
-and bundles the binaries in Flutter applications using these FFI plugins.
-
-This can be combined with dartPluginClass, such as when FFI is used for the
-implementation of one platform in a federated plugin:
-
-```yaml
-  plugin:
-    implements: some_other_plugin
-    platforms:
-      some_platform:
-        dartPluginClass: SomeClass
-        ffiPlugin: true
-```
-
-A plugin can have both FFI and method channels:
-
-```yaml
-  plugin:
-    platforms:
-      some_platform:
-        pluginClass: SomeName
-        ffiPlugin: true
-```
-
-The native build systems that are invoked by FFI (and method channel) plugins are:
-
-* For Android: Gradle, which invokes the Android NDK for native builds.
-  * See the documentation in android/build.gradle.
-* For iOS and MacOS: Xcode, via CocoaPods.
-  * See the documentation in ios/dart_esc_pos_driver.podspec.
-  * See the documentation in macos/dart_esc_pos_driver.podspec.
-* For Linux and Windows: CMake.
-  * See the documentation in linux/CMakeLists.txt.
-  * See the documentation in windows/CMakeLists.txt.
-
-## Binding to native code
-
-To use the native code, bindings in Dart are needed.
-To avoid writing these by hand, they are generated from the header file
-(`src/dart_esc_pos_driver.h`) by `package:ffigen`.
-Regenerate the bindings by running `dart run ffigen --config ffigen.yaml`.
-
-## Invoking native code
-
-Very short-running native functions can be directly invoked from any isolate.
-For example, see `sum` in `lib/dart_esc_pos_driver.dart`.
-
-Longer-running functions should be invoked on a helper isolate to avoid
-dropping frames in Flutter applications.
-For example, see `sumAsync` in `lib/dart_esc_pos_driver.dart`.
-
-## Flutter help
-
-For help getting started with Flutter, view our
-[online documentation](https://flutter.dev/docs), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
-

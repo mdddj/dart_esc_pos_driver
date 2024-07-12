@@ -39,8 +39,8 @@ class _MyAppState extends State<MyApp> {
 
   Future<void> _getConsolePrinter() async {
     try {
-      print('开始连接控制台打印.');
-      final consolePrinter = await LddConsoleDriver.open();
+      print('开始连接打印机.');
+      final consolePrinter = await LddNetworkDriver.open(host: "", port: 0);
       print(consolePrinter);
       final printer = await consolePrinter.openPrinter();
       print(printer);
